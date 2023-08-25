@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.BookingMapper;
 import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.model.Booking;
@@ -24,7 +25,6 @@ import ru.practicum.shareit.item.model.ItemServerDto;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
-import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Comparator;
@@ -42,6 +42,7 @@ public class ItemServiceImpl implements ItemService {
     private final BookingRepository bookingRepo;
     private final CommentRepository commentRepo;
 
+    @Transactional(readOnly = true)
     @Override
     public List<ItemServerDto> getAllUserItems(Long ownerId) {
         List<Item> userItems = itemRepo.findAllByOwnerId(ownerId);
@@ -53,6 +54,7 @@ public class ItemServiceImpl implements ItemService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     @Override
     public ItemServerDto getItem(Long userId, Integer itemId) {
         Item item = findItemOrThrowException(itemId);
@@ -96,6 +98,7 @@ public class ItemServiceImpl implements ItemService {
         return ItemMapper.toItemServerDto(item);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<ItemServerDto> getItemsBySearch(String text) {
         if (text.isBlank()) {

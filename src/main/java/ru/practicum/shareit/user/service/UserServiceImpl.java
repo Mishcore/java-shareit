@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.EmailAlreadyExistsException;
 import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.user.UserMapper;
@@ -16,11 +17,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 @Slf4j
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepo;
 
+    @Transactional(readOnly = true)
     @Override
     public List<UserDto> getAllUsers() {
         List<User> users = userRepo.findAll();
@@ -28,6 +31,7 @@ public class UserServiceImpl implements UserService {
         return users.stream().map(UserMapper::toUserDto).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     @Override
     public UserDto getUser(Long userId) {
         User user = findUserOrThrowException(userId);

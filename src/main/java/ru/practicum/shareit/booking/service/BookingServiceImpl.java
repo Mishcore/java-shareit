@@ -3,6 +3,7 @@ package ru.practicum.shareit.booking.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.BookingMapper;
 import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.model.Booking;
@@ -25,6 +26,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 @Slf4j
 public class BookingServiceImpl implements BookingService {
@@ -70,6 +72,7 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toBookingServerDto(bookingRepo.save(booking));
     }
 
+    @Transactional(readOnly = true)
     @Override
     public BookingServerDto getBooking(Long userId, Integer bookingId) {
         User user = findUserOrThrowException(userId);
@@ -85,6 +88,7 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toBookingServerDto(booking);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<BookingServerDto> getUserBookings(Long bookerId, State state) {
         User user = findUserOrThrowException(bookerId);
@@ -115,6 +119,7 @@ public class BookingServiceImpl implements BookingService {
         return bookings.stream().map(BookingMapper::toBookingServerDto).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<BookingServerDto> getItemBookings(Long ownerId, State state) {
         User user = findUserOrThrowException(ownerId);

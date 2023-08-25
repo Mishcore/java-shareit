@@ -17,6 +17,7 @@ import ru.practicum.shareit.booking.model.BookingServerDto;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.enums.State;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.util.List;
@@ -31,7 +32,7 @@ public class BookingController {
 
     @PostMapping
     public BookingServerDto addBooking(
-            @RequestHeader("X-Sharer-User-Id") @Positive Long userId, @RequestBody @Validated BookingClientDto bookingClientDto) {
+            @RequestHeader("X-Sharer-User-Id") @Positive Long userId, @RequestBody @Valid BookingClientDto bookingClientDto) {
         log.info("Принят запрос на добавление бронирования");
         return bookingService.addBooking(userId, bookingClientDto);
     }

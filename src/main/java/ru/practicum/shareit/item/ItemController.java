@@ -10,6 +10,7 @@ import ru.practicum.shareit.item.model.ItemClientDto;
 import ru.practicum.shareit.item.model.ItemServerDto;
 import ru.practicum.shareit.item.service.ItemService;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import java.util.List;
 
@@ -42,7 +43,7 @@ public class ItemController {
 
     @PostMapping
     public ItemServerDto addItem(@RequestHeader("X-Sharer-User-Id") @Positive Long ownerId,
-                                 @RequestBody @Validated ItemClientDto itemDto) {
+                                 @RequestBody @Valid ItemClientDto itemDto) {
         log.info("Принят запрос на добавление новой вещи пользователя ID " + ownerId);
         return itemService.addItem(ownerId, itemDto);
     }
@@ -59,7 +60,7 @@ public class ItemController {
     @PostMapping("/{itemId}/comment")
     public CommentServerDto addComment(@RequestHeader("X-Sharer-User-Id") @Positive Long authorId,
                                        @PathVariable @Positive Integer itemId,
-                                       @RequestBody CommentClientDto commentDto) {
+                                       @RequestBody @Valid CommentClientDto commentDto) {
         log.info("Принят запрос на добавление комментария к вещи ID " + itemId);
         return itemService.addComment(authorId, itemId, commentDto);
     }
