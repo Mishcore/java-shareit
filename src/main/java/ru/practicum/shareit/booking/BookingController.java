@@ -20,6 +20,7 @@ import ru.practicum.shareit.enums.State;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
@@ -56,16 +57,20 @@ public class BookingController {
     @GetMapping
     public List<BookingServerDto> getUserBookings(
             @RequestHeader("X-Sharer-User-Id") @Positive Long userId,
-            @RequestParam (defaultValue = "ALL") State state) {
+            @RequestParam (defaultValue = "ALL") State state,
+            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+            @RequestParam(defaultValue = "10") @Positive Integer size) {
         log.info("Принят запрос на получение списка бронирований пользователя ID " + userId);
-        return bookingService.getUserBookings(userId, state);
+        return bookingService.getUserBookings(userId, state, from, size);
     }
 
     @GetMapping("/owner")
     public List<BookingServerDto> getItemBookings(
             @RequestHeader("X-Sharer-User-Id") @Positive Long userId,
-            @RequestParam (defaultValue = "ALL") State state) {
+            @RequestParam (defaultValue = "ALL") State state,
+            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+            @RequestParam(defaultValue = "10") @Positive Integer size) {
         log.info("Принят запрос на получение списка бронирований для всех вещей пользователя ID " + userId);
-        return bookingService.getItemBookings(userId, state);
+        return bookingService.getItemBookings(userId, state, from, size);
     }
 }

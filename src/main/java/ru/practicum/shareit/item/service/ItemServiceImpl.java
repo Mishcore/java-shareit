@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.BookingMapper;
@@ -9,7 +10,6 @@ import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingItemDto;
 import ru.practicum.shareit.enums.Status;
-import ru.practicum.shareit.exception.EntityNotFoundException;
 import ru.practicum.shareit.exception.InvalidOperationException;
 import ru.practicum.shareit.exception.UnauthorizedAccessException;
 import ru.practicum.shareit.item.ItemMapper;
@@ -22,6 +22,8 @@ import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.ItemClientDto;
 import ru.practicum.shareit.item.model.ItemServerDto;
+import ru.practicum.shareit.request.dao.RequestRepository;
+import ru.practicum.shareit.request.model.Request;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
@@ -32,6 +34,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static ru.practicum.shareit.EntityFinder.*;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -41,11 +45,14 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepo;
     private final BookingRepository bookingRepo;
     private final CommentRepository commentRepo;
+    private final RequestRepository requestRepo;
 
     @Transactional(readOnly = true)
     @Override
-    public List<ItemServerDto> getAllUserItems(Long ownerId) {
-        List<Item> userItems = itemRepo.findAllByOwnerId(ownerId);
+    public List<ItemServerDto> getAllUserItems(Long ownerId, Integer from, Integer size) {
+        List<Item> userItems = itemRepo.findAllByOwnerId(
+                ownerId,
+                PageRequest.of(from / size, size));
         log.info("Получен список всех вещей пользователя ID " + ownerId);
         return userItems.stream()
                 .map(ItemMapper::toItemServerDto)
@@ -57,7 +64,7 @@ public class ItemServiceImpl implements ItemService {
     @Transactional(readOnly = true)
     @Override
     public ItemServerDto getItem(Long userId, Integer itemId) {
-        Item item = findItemOrThrowException(itemId);
+        Item item = findItemOrThrowException(itemRepo, itemId);
         log.info("Получена вещь ID " + itemId);
         ItemServerDto itemServerDto = ItemMapper.toItemServerDto(item);
         if (userId.equals(item.getOwner().getId())) {
@@ -70,16 +77,28 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemServerDto addItem(Long ownerId, ItemClientDto itemDto) {
-        User owner = findUserOrThrowException(ownerId);
-        Item item = itemRepo.save(ItemMapper.toItem(owner, itemDto));
-        log.info("Добавлена новая вещь ID " + item.getId() + " пользователя ID " + ownerId);
+        User owner = findUserOrThrowException(userRepo, ownerId);
+        Request request = null;
+        if (itemDto.getRequestId() != null) {
+            request = findRequestOrThrowException(requestRepo, itemDto.getRequestId());
+        }
+        Item item = itemRepo.save(ItemMapper.toItem(owner, request, itemDto));
+
+        StringBuilder logBuilder = new StringBuilder(
+                "Добавлена новая вещь ID " + item.getId() + " пользователя ID " + ownerId);
+        if (request != null) {
+            logBuilder.append(
+                    " по запросу ID " + request.getId() + " от пользователя ID" + request.getRequestor().getId());
+        }
+        log.info(logBuilder.toString());
+
         return ItemMapper.toItemServerDto(item);
     }
 
     @Override
     public ItemServerDto editItem(Long ownerId, Integer itemId, ItemClientDto itemDto) {
-        User owner = findUserOrThrowException(ownerId);
-        Item itemFromRepo = findItemOrThrowException(itemId);
+        findUserOrThrowException(userRepo, ownerId);
+        Item itemFromRepo = findItemOrThrowException(itemRepo, itemId);
 
         if (!ownerId.equals(itemFromRepo.getOwner().getId())) {
             throw new UnauthorizedAccessException("Пользователь не является владельцем вещи");
@@ -100,20 +119,20 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<ItemServerDto> getItemsBySearch(String text) {
+    public List<ItemServerDto> getItemsBySearch(String text, Integer from, Integer size) {
         if (text.isBlank()) {
             log.info("Строка поиска пуста. Возвращён пустой список");
             return Collections.emptyList();
         }
-        List<Item> items = itemRepo.search(text);
+        List<Item> items = itemRepo.search(text, PageRequest.of(from / size, size));
         log.info("Получен список вещей по поисковой строке \"" + text + "\"");
         return items.stream().map(ItemMapper::toItemServerDto).collect(Collectors.toList());
     }
 
     @Override
     public CommentServerDto addComment(Long authorId, Integer itemId, CommentClientDto commentDto) {
-        User user = findUserOrThrowException(authorId);
-        Item item = findItemOrThrowException(itemId);
+        User user = findUserOrThrowException(userRepo, authorId);
+        Item item = findItemOrThrowException(itemRepo, itemId);
 
         if (item.getOwner().getId().equals(authorId)) {
             throw new InvalidOperationException("Владелец не может оставлять комментарии к собственной вещи");
@@ -127,22 +146,6 @@ public class ItemServiceImpl implements ItemService {
         Comment comment = commentRepo.save(CommentMapper.toComment(user, item, commentDto));
         log.info("Добавлен комментарий к вещи ID " + itemId + " от пользователя ID " + authorId);
         return CommentMapper.toCommentServerDto(comment);
-    }
-
-    private Item findItemOrThrowException(Integer itemId) {
-        Optional<Item> itemOpt = itemRepo.findById(itemId);
-        if (itemOpt.isEmpty()) {
-            throw new EntityNotFoundException("Вещь не найдена");
-        }
-        return itemOpt.get();
-    }
-
-    private User findUserOrThrowException(Long userId) {
-        Optional<User> userOpt = userRepo.findById(userId);
-        if (userOpt.isEmpty()) {
-            throw new EntityNotFoundException("Пользователь не найден");
-        }
-        return userOpt.get();
     }
 
     private ItemServerDto setLastAndNextBookings(ItemServerDto itemServerDto) {

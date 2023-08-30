@@ -12,6 +12,7 @@ import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
@@ -23,9 +24,12 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping
-    public List<ItemServerDto> getAllUserItems(@RequestHeader("X-Sharer-User-Id") @Positive Long ownerId) {
+    public List<ItemServerDto> getAllUserItems(
+            @RequestHeader("X-Sharer-User-Id") @Positive Long ownerId,
+            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+            @RequestParam(defaultValue = "10") @Positive Integer size) {
         log.info("Принят запрос на получение списка всех вещей пользователя ID " + ownerId);
-        return itemService.getAllUserItems(ownerId);
+        return itemService.getAllUserItems(ownerId, from, size);
     }
 
     @GetMapping("/{itemId}")
@@ -36,9 +40,12 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemServerDto> getItemsBySearch(@RequestParam String text) {
+    public List<ItemServerDto> getItemsBySearch(
+            @RequestParam String text,
+            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+            @RequestParam(defaultValue = "10") @Positive Integer size) {
         log.info("Принят запрос на получение списка вещей по поисковой строке \"" + text + "\"");
-        return itemService.getItemsBySearch(text);
+        return itemService.getItemsBySearch(text, from, size);
     }
 
     @PostMapping

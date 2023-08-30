@@ -9,8 +9,6 @@ import javax.validation.constraints.NotNull;
 @Data
 @AllArgsConstructor
 public class ItemClientDto {
-    private Integer id;
-
     @NotBlank
     private String name;
 
@@ -19,4 +17,6 @@ public class ItemClientDto {
 
     @NotNull
     private Boolean available;
+
+    private Integer requestId;
 }
