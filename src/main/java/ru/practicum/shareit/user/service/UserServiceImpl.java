@@ -11,7 +11,11 @@ import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.model.UserDto;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validation;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.EntityFinder.findUserOrThrowException;
@@ -35,7 +39,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto getUser(Long userId) {
         User user = findUserOrThrowException(userRepo, userId);
-        log.info("Получен пользоатель ID " + userId);
+        log.info("Получен пользователь ID " + userId);
         return UserMapper.toUserDto(user);
     }
 
@@ -60,6 +64,7 @@ public class UserServiceImpl implements UserService {
         if (userDto.getEmail() != null) {
             userFromRepo.setEmail(userDto.getEmail());
         }
+        validateUser(userFromRepo);
         try {
             User user = userRepo.save(userFromRepo);
             log.info("Обновлены данные пользователя ID " + userId);
@@ -74,5 +79,13 @@ public class UserServiceImpl implements UserService {
         User user = findUserOrThrowException(userRepo, userId);
         userRepo.deleteById(user.getId());
         log.info("Удалён пользователь ID " + user.getId());
+    }
+
+    private void validateUser(User user) {
+        Set<ConstraintViolation<User>> violations =
+                Validation.buildDefaultValidatorFactory().getValidator().validate(user);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
     }
 }

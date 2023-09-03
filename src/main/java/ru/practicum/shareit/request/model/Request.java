@@ -31,12 +31,6 @@ public class Request {
     @EqualsAndHashCode.Exclude
     private User requestor;
 
-//    @OneToMany
-//    @JoinColumn(name = "request_id")
-//    @ToString.Exclude
-//    @EqualsAndHashCode.Exclude
-//    private List<Item> items;
-
     @NotNull
     @Column(name = "creation_date", nullable = false)
     private LocalDateTime created;

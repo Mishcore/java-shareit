@@ -27,11 +27,11 @@ import ru.practicum.shareit.request.model.Request;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validation;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ru.practicum.shareit.EntityFinder.*;
@@ -50,6 +50,7 @@ public class ItemServiceImpl implements ItemService {
     @Transactional(readOnly = true)
     @Override
     public List<ItemServerDto> getAllUserItems(Long ownerId, Integer from, Integer size) {
+        User owner = findUserOrThrowException(userRepo, ownerId);
         List<Item> userItems = itemRepo.findAllByOwnerId(
                 ownerId,
                 PageRequest.of(from / size, size));
@@ -112,6 +113,7 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getAvailable() != null) {
             itemFromRepo.setAvailable(itemDto.getAvailable());
         }
+        validateItem(itemFromRepo);
         Item item = itemRepo.save(itemFromRepo);
         log.info("Отредактированы данные вещи ID " + itemId + " пользователя ID " + ownerId);
         return ItemMapper.toItemServerDto(item);
@@ -171,5 +173,13 @@ public class ItemServiceImpl implements ItemService {
                 .collect(Collectors.toList());
         itemServerDto.setComments(comments);
         return itemServerDto;
+    }
+
+    private void validateItem(Item item) {
+        Set<ConstraintViolation<Item>> violations =
+                Validation.buildDefaultValidatorFactory().getValidator().validate(item);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
     }
 }

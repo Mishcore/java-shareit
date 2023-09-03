@@ -18,12 +18,4 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
     List<Item> search(String text, Pageable pageable);
 
     List<Item> findAllByRequestId(Integer id);
-
-    int countByOwnerId(Long ownerId);
-
-    @Query("select count(i) from Item i " +
-            "where i.available = true " +
-            "and (lower(i.name) like lower(concat('%', ?1, '%')) " +
-            "or lower(i.description) like lower(concat('%', ?1, '%')))")
-    int countBySearch(String text);
 }

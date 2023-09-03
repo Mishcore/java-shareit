@@ -13,6 +13,8 @@ import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
+import static ru.practicum.shareit.Constants.USER_ID;
+
 @RestController
 @RequiredArgsConstructor
 @Slf4j
@@ -23,20 +25,20 @@ public class RequestController {
 
     @PostMapping
     public RequestServerDto addRequest(
-            @RequestHeader("X-Sharer-User-Id") @Positive Long userId, @RequestBody @Valid RequestClientDto requestDto) {
+            @RequestHeader(USER_ID) @Positive Long userId, @RequestBody @Valid RequestClientDto requestDto) {
         log.info("Принят запрос на добавление запроса вещи");
         return requestService.addRequest(userId, requestDto);
     }
 
     @GetMapping
-    public List<RequestServerDto> getUserRequests(@RequestHeader("X-Sharer-User-Id") @Positive Long userId) {
+    public List<RequestServerDto> getUserRequests(@RequestHeader(USER_ID) @Positive Long userId) {
         log.info("Принят запрос на получение списка запросов пользователя ID " + userId);
         return requestService.getUserRequests(userId);
     }
 
     @GetMapping("/all")
     public List<RequestServerDto> getOtherRequests(
-            @RequestHeader("X-Sharer-User-Id") @Positive Long userId,
+            @RequestHeader(USER_ID) @Positive Long userId,
             @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
             @RequestParam(defaultValue = "10") @Positive Integer size) {
         log.info("Принят запрос на получение запросов других пользователей");
@@ -44,7 +46,7 @@ public class RequestController {
     }
 
     @GetMapping("/{requestId}")
-    public RequestServerDto getRequest(@RequestHeader("X-Sharer-User-Id") @Positive Long userId,
+    public RequestServerDto getRequest(@RequestHeader(USER_ID) @Positive Long userId,
                                        @PathVariable @Positive Integer requestId) {
         log.info("Принят запрос на получение запроса ID " + requestId);
         return requestService.getRequest(userId, requestId);

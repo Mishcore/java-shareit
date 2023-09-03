@@ -36,7 +36,7 @@ public class RequestServiceImpl implements RequestService {
     public RequestServerDto addRequest(Long userId, RequestClientDto requestDto) {
         User user = findUserOrThrowException(userRepo, userId);
         Request request = requestRepo.save(RequestMapper.toRequest(user, requestDto));
-        log.info("Добавлен новый запрос ID " + request.getId() + " от пользователя ID" + userId);
+        log.info("Добавлен новый запрос ID " + request.getId() + " от пользователя ID " + userId);
         return RequestMapper.toRequestServerDto(request);
     }
 
@@ -45,7 +45,7 @@ public class RequestServiceImpl implements RequestService {
     public List<RequestServerDto> getUserRequests(Long userId) {
         findUserOrThrowException(userRepo, userId);
         List<Request> userRequests = requestRepo.findAllByRequestorIdOrderByCreatedDesc(userId);
-        log.info("Получен список всех запросов пользователя ID" + userId);
+        log.info("Получен список всех запросов пользователя ID " + userId);
         return userRequests.stream()
                 .map(RequestMapper::toRequestServerDto)
                 .map(this::setItems)
