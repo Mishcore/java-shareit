@@ -15,9 +15,9 @@ public interface ItemService {
 
     ItemServerDto editItem(Long ownerId, Integer itemId, ItemClientDto itemDto);
 
-    List<ItemServerDto> getAllUserItems(Long ownerId);
+    List<ItemServerDto> getAllUserItems(Long ownerId, Integer from, Integer size);
 
-    List<ItemServerDto> getItemsBySearch(String text);
+    List<ItemServerDto> getItemsBySearch(String text, Integer from, Integer size);
 
     CommentServerDto addComment(Long authorId, Integer itemId, CommentClientDto commentDto);
 }

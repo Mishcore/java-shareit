@@ -11,8 +11,12 @@ import ru.practicum.shareit.item.model.ItemServerDto;
 import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
+
+import static ru.practicum.shareit.Constants.USER_ID;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,26 +27,32 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping
-    public List<ItemServerDto> getAllUserItems(@RequestHeader("X-Sharer-User-Id") @Positive Long ownerId) {
+    public List<ItemServerDto> getAllUserItems(
+            @RequestHeader(USER_ID) @Positive Long ownerId,
+            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+            @RequestParam(defaultValue = "10") @Positive Integer size) {
         log.info("Принят запрос на получение списка всех вещей пользователя ID " + ownerId);
-        return itemService.getAllUserItems(ownerId);
+        return itemService.getAllUserItems(ownerId, from, size);
     }
 
     @GetMapping("/{itemId}")
-    public ItemServerDto getItem(@RequestHeader("X-Sharer-User-Id") @Positive Long userId,
+    public ItemServerDto getItem(@RequestHeader(USER_ID) @Positive Long userId,
                                  @PathVariable @Positive Integer itemId) {
         log.info("Принят запрос на получение вещи ID " + itemId);
         return itemService.getItem(userId, itemId);
     }
 
     @GetMapping("/search")
-    public List<ItemServerDto> getItemsBySearch(@RequestParam String text) {
+    public List<ItemServerDto> getItemsBySearch(
+            @RequestParam @NotNull String text,
+            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+            @RequestParam(defaultValue = "10") @Positive Integer size) {
         log.info("Принят запрос на получение списка вещей по поисковой строке \"" + text + "\"");
-        return itemService.getItemsBySearch(text);
+        return itemService.getItemsBySearch(text, from, size);
     }
 
     @PostMapping
-    public ItemServerDto addItem(@RequestHeader("X-Sharer-User-Id") @Positive Long ownerId,
+    public ItemServerDto addItem(@RequestHeader(USER_ID) @Positive Long ownerId,
                                  @RequestBody @Valid ItemClientDto itemDto) {
         log.info("Принят запрос на добавление новой вещи пользователя ID " + ownerId);
         return itemService.addItem(ownerId, itemDto);
@@ -50,7 +60,7 @@ public class ItemController {
 
     @PatchMapping("/{itemId}")
     public ItemServerDto editItem(
-            @RequestHeader("X-Sharer-User-Id") @Positive Long ownerId,
+            @RequestHeader(USER_ID) @Positive Long ownerId,
             @PathVariable @Positive Integer itemId,
             @RequestBody ItemClientDto itemDto) {
         log.info("Принят запрос на редактирование данных вещи ID " + itemId + " пользователя ID " + ownerId);
@@ -58,7 +68,7 @@ public class ItemController {
     }
 
     @PostMapping("/{itemId}/comment")
-    public CommentServerDto addComment(@RequestHeader("X-Sharer-User-Id") @Positive Long authorId,
+    public CommentServerDto addComment(@RequestHeader(USER_ID) @Positive Long authorId,
                                        @PathVariable @Positive Integer itemId,
                                        @RequestBody @Valid CommentClientDto commentDto) {
         log.info("Принят запрос на добавление комментария к вещи ID " + itemId);
