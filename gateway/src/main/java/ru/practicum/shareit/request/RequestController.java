@@ -30,29 +30,30 @@ public class RequestController {
     private final RequestClient requestClient;
 
     @PostMapping
-    public ResponseEntity<Object> addRequest(@RequestHeader(USER_ID) long userId,
+    public ResponseEntity<Object> addRequest(@RequestHeader(USER_ID) @Positive long userId,
                                              @RequestBody @Valid RequestDto requestDto) {
         log.info("Запрос на создание запроса {}, userId={}", requestDto, userId);
         return requestClient.addRequest(userId, requestDto);
     }
 
     @GetMapping
-    public ResponseEntity<Object> getUserRequest(@RequestHeader(USER_ID) long userId) {
+    public ResponseEntity<Object> getUserRequest(@RequestHeader(USER_ID) @Positive long userId) {
         log.info("Запрос на получение запросов, userId={}", userId);
         return requestClient.getUserRequests(userId);
     }
 
     @GetMapping("/all")
-    public ResponseEntity<Object> getOtherRequests(@RequestHeader(USER_ID) long userId,
-                                                  @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") int from,
-                                                  @Positive @RequestParam(name = "size", defaultValue = "10") int size) {
+    public ResponseEntity<Object> getOtherRequests(
+            @RequestHeader(USER_ID) @Positive long userId,
+            @RequestParam(name = "from", defaultValue = "0") @PositiveOrZero int from,
+            @RequestParam(name = "size", defaultValue = "10") @Positive int size) {
         log.info("Запрос на получение запросов, userId={}, from={}, size={}", userId, from, size);
         return requestClient.getOtherRequests(userId, from, size);
     }
 
     @GetMapping("/{requestId}")
-    public ResponseEntity<Object> getRequest(@RequestHeader(USER_ID) long userId,
-                                             @PathVariable int requestId) {
+    public ResponseEntity<Object> getRequest(@RequestHeader(USER_ID) @Positive long userId,
+                                             @PathVariable @Positive int requestId) {
         log.info("Запрос на получение запроса {}, userId={}", requestId, userId);
         return requestClient.getRequest(userId, requestId);
     }

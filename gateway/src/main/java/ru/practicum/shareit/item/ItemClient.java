@@ -44,7 +44,7 @@ public class ItemClient extends BaseClient {
                 "from", from,
                 "size", size
         );
-        return get("/search?text={text}", null, parameters); // TODO: проверить работу с null
+        return get("/search?text={text}", null, parameters);
     }
 
     public ResponseEntity<Object> addItem(long ownerId, ItemDto itemDto) {

@@ -26,23 +26,23 @@ public class BookingController {
 	private final BookingClient bookingClient;
 
 	@PostMapping
-	public ResponseEntity<Object> addBooking(@RequestHeader(USER_ID) long userId,
+	public ResponseEntity<Object> addBooking(@RequestHeader(USER_ID) @Positive long userId,
 											 @RequestBody @Valid BookItemRequestDto requestDto) {
 		log.info("Запрос на создание бронирования {}, userId={}", requestDto, userId);
 		return bookingClient.addBooking(userId, requestDto);
 	}
 
 	@PatchMapping("/{bookingId}")
-	public ResponseEntity<Object> approveBooking(@RequestHeader(USER_ID) long userId,
-												 @PathVariable int bookingId,
+	public ResponseEntity<Object> approveBooking(@RequestHeader(USER_ID) @Positive long userId,
+												 @PathVariable @Positive int bookingId,
 												 @RequestParam boolean approved) {
 		log.info("Запрос на подтверждение/отклонение бронирования Id={}, userId={}", bookingId, userId);
 		return bookingClient.approveBooking(userId, bookingId, approved);
 	}
 
 	@GetMapping("/{bookingId}")
-	public ResponseEntity<Object> getBooking(@RequestHeader(USER_ID) long userId,
-											 @PathVariable int bookingId) {
+	public ResponseEntity<Object> getBooking(@RequestHeader(USER_ID) @Positive long userId,
+											 @PathVariable @Positive int bookingId) {
 		log.info("Запрос на получение бронирования {}, userId={}", bookingId, userId);
 		return bookingClient.getBooking(userId, bookingId);
 	}
